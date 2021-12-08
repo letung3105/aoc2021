@@ -3,31 +3,24 @@ import System.IO
 
 main = do
   args <- getArgs
-  mapM putStrLn args
+  contents <- readFile . head $ args
+  let ans01 = day01Part01 contents
+      ans02 = day01Part02 contents
+  print ans01
+  print ans02
 
-result01 = processData "../input/day01.txt" day01Part01
+day01Part01 puzzleData =
+  fst $ foldl countIncrements (0::Int, head values) . tail $ values
+  where
+    values = map read . words $ puzzleData :: [Int]
 
-result02 = processData "../input/day01.txt" day01Part02
-
-processData fpath procedure = do
-  fhandle <- openFile fpath ReadMode
-  contents <- hGetContents fhandle
-  let results = procedure contents
-  hClose fhandle
-  return results
+day01Part02 puzzleData =
+  fst $ foldl countIncrements (0::Int, head rollingsums) . tail $ rollingsums
+  where
+    values = map read . words $ puzzleData :: [Int]
+    rollingsums = zipWith3 (\x y z -> x + y + z) values (drop 1 values) (drop 2 values)
 
 countIncrements (count, prev) curr =
   if prev < curr
     then (count + 1, curr)
     else (count, curr)
-
-day01Part01 puzzleData =
-  fst $ foldl countIncrements (0, head values) . tail $ values
-  where
-    values = map read . words $ puzzleData :: [Int]
-
-day01Part02 puzzleData =
-  fst $ foldl countIncrements (0, head rollingsums) . tail $ rollingsums
-  where
-    values = map read . words $ puzzleData :: [Int]
-    rollingsums = zipWith3 (\x y z -> x + y + z) values (drop 1 values) (drop 2 values)
