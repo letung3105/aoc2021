@@ -1,4 +1,5 @@
 buildrs: setup day01rs day02rs day03rs day04rs day05rs day06rs day07rs
+buildhs: setup day01hs day02hs
 
 day01rs: day01.rs
 	rustc -o target/$@ $?
@@ -22,6 +23,9 @@ day07rs: day07.rs
 	rustc -o target/$@ $?
 
 day01hs: day01.hs
+	ghc -o target/$@ $?
+
+day02hs: day02.hs
 	ghc -o target/$@ $?
 
 .PHONY: setup
