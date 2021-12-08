@@ -91,33 +91,3 @@ impl Position for PositionV2 {
         }
     }
 }
-
-#[test]
-fn day02_part01_example() {
-    let commands = [
-        "forward 5",
-        "down 5",
-        "forward 8",
-        "up 3",
-        "down 8",
-        "forward 2",
-    ];
-    let mut pos = PositionV1::default();
-    pos.follow_commands(commands.iter());
-    assert_eq!(pos.x * pos.y, 150);
-}
-
-#[test]
-fn day02_part02_example() {
-    let commands = [
-        "forward 5",
-        "down 5",
-        "forward 8",
-        "up 3",
-        "down 8",
-        "forward 2",
-    ];
-    let mut pos = PositionV2::default();
-    pos.follow_commands(commands.iter());
-    assert_eq!(pos.x * pos.y, 900);
-}

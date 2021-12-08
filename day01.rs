@@ -40,24 +40,3 @@ where
         .map(|((x, y), z)| x + y + z)
         .collect()
 }
-
-#[test]
-fn day01_part01_example() {
-    let data = "199\n200\n208\n210\n200\n207\n240\n269\n260\n263";
-    let xs = data
-        .lines()
-        .map(|l| l.parse::<u64>().expect("Line's content is not a number!"));
-    let n = count_increments(xs);
-    assert_eq!(n, 7)
-}
-
-#[test]
-fn day01_part02_example() {
-    let data = "199\n200\n208\n210\n200\n207\n240\n269\n260\n263";
-    let xs = data
-        .lines()
-        .map(|l| l.parse::<u64>().expect("Line's content is not a number!"));
-    let ss = rolling_sum(xs);
-    let n = count_increments(ss.iter());
-    assert_eq!(n, 5)
-}

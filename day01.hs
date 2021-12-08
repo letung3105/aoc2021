@@ -1,4 +1,9 @@
+import System.Environment
 import System.IO
+
+main = do
+  args <- getArgs
+  mapM putStrLn args
 
 result01 = processData "../input/day01.txt" day01Part01
 

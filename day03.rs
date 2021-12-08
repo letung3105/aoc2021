@@ -95,23 +95,3 @@ where
     }
     bits
 }
-
-#[test]
-fn day03_part01_example() {
-    let bit_patterns = [
-        "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000", "11001",
-        "00010", "01010",
-    ];
-    let pw = read_power_consumption(bit_patterns.iter());
-    assert_eq!(pw, 198)
-}
-
-#[test]
-fn day03_part02_example() {
-    let bit_patterns = [
-        "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000", "11001",
-        "00010", "01010",
-    ];
-    let ls = read_life_support_rating(bit_patterns.iter());
-    assert_eq!(ls, 230)
-}
