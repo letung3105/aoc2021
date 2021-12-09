@@ -1,33 +1,16 @@
-testExample = """be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
-              edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
-              fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
-              fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
-              aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea
-              fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb
-              dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe
-              bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
-              egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
-              gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
-              """
+parse_signals(signals) = map(Set{Char}, split(signals, ' '))
+
+parse_line(line) = split(line, '|') .|> strip .|> parse_signals
 
 function part01(input)
     ndigits = 0
     for line in split(strip(input), '\n')
-        @show line
-        _, output = strip.(split(line, '|'))
-        for digit in split(output, ' ')
-            if length(digit) in [2, 3, 4, 7]
-                ndigits += 1
-            end
-        end
+        _, output = parse_line(line)
+        filter!(o -> length(o) in [2, 3, 4, 7], output)
+        ndigits += length(output)
     end
     ndigits
 end
-
-part01(testExample)
-part01(read("input/day08.txt", String))
-
-parse_signals(signals) = map(Set{Char}, split(signals, ' '))
 
 function segment_frequencies(signals)
     freq = Dict{Char,Int}([
@@ -123,10 +106,10 @@ function decode_signals(signals)
         # 5 is the only one left that has 5 segments
         if length(signal) == 5
             signals_mapping[5] = signal
-        # 0 if there's 4 segments left after remove the segments for 1
+            # 0 if there's 4 segments left after remove the segments for 1
         elseif length(setdiff(signal, signals_mapping[1])) == 4
             signals_mapping[0] = signal
-        # 0 if there's 5 segments left after remove the segments for 1
+            # 0 if there's 5 segments left after remove the segments for 1
         elseif length(setdiff(signal, signals_mapping[1])) == 5
             signals_mapping[6] = signal
         end
@@ -151,5 +134,8 @@ function part02(input)
     s
 end
 
-part02(testExample)
+part01(read("input/day08_ex.txt", String))
+part01(read("input/day08.txt", String))
+
+part02(read("input/day08_ex.txt", String))
 part02(read("input/day08.txt", String))
