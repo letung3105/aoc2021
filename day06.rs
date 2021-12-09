@@ -18,13 +18,13 @@ fn main() {
     }
 
     let n = simulate_v1(fishes, 80);
-    println!("Number of fishes: {}", n);
+    println!("{}", n);
 
     let n = simulate_v2(cycles, 80);
-    println!("Number of fishes: {}", n);
+    println!("{}", n);
 
     let n = simulate_v2(cycles, 256);
-    println!("Number of fishes: {}", n);
+    println!("{}", n);
 }
 
 // This version is gonna be slow

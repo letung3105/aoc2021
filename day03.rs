@@ -8,10 +8,10 @@ fn main() {
     let lines = s.lines();
 
     let pw = read_power_consumption(lines.clone());
-    println!("Power consumption: {}", pw);
+    println!("{}", pw);
 
     let ls = read_life_support_rating(lines);
-    println!("Life support rating: {}", ls);
+    println!("{}", ls);
 }
 
 fn read_power_consumption<T, V>(bit_patterns: V) -> usize

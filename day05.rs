@@ -8,10 +8,10 @@ fn main() {
     let lines = s.lines();
 
     let n1 = count_intersections(lines.clone(), false);
-    println!("Number of intersections {}", n1);
+    println!("{}", n1);
 
     let n2 = count_intersections(lines, true);
-    println!("Number of intersections {}", n2);
+    println!("{}", n2);
 }
 
 fn count_intersections<T, V>(data: V, diagonal: bool) -> usize

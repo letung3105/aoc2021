@@ -12,11 +12,11 @@ fn main() {
 
     let mut bingo = BingoSession::new(boards.clone());
     let (board_id, score) = bingo.simulate_win_first(&simulation).unwrap();
-    println!("Board {} will win first with score = {}", board_id, score);
+    println!("{} -- {}", board_id, score);
 
     let mut bingo = BingoSession::new(boards);
     let (board_id, score) = bingo.simulate_win_last(&simulation).unwrap();
-    println!("Board {} will win last with score = {}", board_id, score);
+    println!("{} -- {}", board_id, score);
 }
 
 fn read_simulation<T, V>(mut data: V) -> Vec<u64>

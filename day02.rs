@@ -9,11 +9,11 @@ fn main() {
 
     let mut pos1 = PositionV1::default();
     pos1.follow_commands(lines.clone());
-    println!("Coordinates' product: {}", pos1.x * pos1.y);
+    println!("{}", pos1.x * pos1.y);
 
     let mut pos2 = PositionV2::default();
     pos2.follow_commands(lines);
-    println!("Coordinates' product: {}", pos2.x * pos2.y);
+    println!("{}", pos2.x * pos2.y);
 }
 
 fn parse_command<S>(cmd: S) -> (String, i64)

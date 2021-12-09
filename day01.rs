@@ -10,10 +10,10 @@ fn main() {
         .map(|l| l.parse::<u64>().expect("Line's content is not a number!"));
 
     let n = count_increments(xs.clone());
-    println!("Number of increments: {:?}", n);
+    println!("{}", n);
 
     let n = count_increments(rolling_sum(xs).iter());
-    println!("Number of sum increments: {:?}", n);
+    println!("{}", n);
 }
 
 fn count_increments<T, V>(values: V) -> usize
