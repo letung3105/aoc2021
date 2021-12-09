@@ -55,35 +55,3 @@ fn simulate_v2(mut cycles: [u64; 9], days: u64) -> u64 {
     }
     cycles.iter().sum()
 }
-
-#[test]
-fn day06_example01() {
-    let fishes = vec![3, 4, 3, 1, 2];
-    let mut cycles = [0u64; 9];
-    for cycle in &fishes {
-        cycles[*cycle as usize] += 1;
-    }
-    assert_eq!(simulate_v1(fishes, 18), 26);
-    assert_eq!(simulate_v2(cycles, 18), 26);
-}
-
-#[test]
-fn day06_example02() {
-    let fishes = vec![3, 4, 3, 1, 2];
-    let mut cycles = [0u64; 9];
-    for cycle in &fishes {
-        cycles[*cycle as usize] += 1;
-    }
-    assert_eq!(simulate_v1(fishes, 80), 5934);
-    assert_eq!(simulate_v2(cycles, 80), 5934);
-}
-
-#[test]
-fn day06_example03() {
-    let fishes = vec![3, 4, 3, 1, 2];
-    let mut cycles = [0u64; 9];
-    for cycle in &fishes {
-        cycles[*cycle as usize] += 1;
-    }
-    assert_eq!(simulate_v2(cycles, 256), 26984457539);
-}
