@@ -117,6 +117,44 @@ function decode_signals(signals)
     Dict([v => k for (k, v) in signals_mapping])
 end
 
+function decode_signals_v2(signals)
+    signals = parse_signals(signals)
+
+    # find signals 1, 4, 7, 9
+    signals_mapping = Dict{Int,Set{Char}}()
+    map_signals_by_length!(signals_mapping, signals)
+
+    zero_six_nine = filter(x -> length(x) == 6, signals)
+    signals_mapping[6] = first(filter(
+        signal -> !isempty(setdiff(signals_mapping[7], signal)),
+        zero_six_nine
+    ))
+    signals_mapping[9] = first(filter(
+        signal -> signal != signals_mapping[6] && isempty(setdiff(signals_mapping[4], signal)),
+        zero_six_nine
+    ))
+    signals_mapping[0] = first(filter(
+        signal -> signal != signals_mapping[6] && signal != signals_mapping[9],
+        zero_six_nine
+    ))
+
+    two_three_five = filter(x -> length(x) == 5, signals)
+    signals_mapping[3] = first(filter(
+        signal -> isempty(setdiff(signals_mapping[1], signal)),
+        two_three_five,
+    ))
+    signals_mapping[5] = first(filter(
+        signal -> isempty(setdiff(signal, signals_mapping[6])),
+        two_three_five,
+    ))
+    signals_mapping[2] = first(filter(
+        signal -> signal != signals_mapping[3] && signal != signals_mapping[5],
+        two_three_five,
+    ))
+
+    Dict([v => k for (k, v) in signals_mapping])
+end
+
 function part02(input)
     s = 0
     for line in split(strip(input), '\n')
@@ -134,8 +172,28 @@ function part02(input)
     s
 end
 
+function part02_v2(input)
+    s = 0
+    for line in split(strip(input), '\n')
+        signals, output = strip.(split(line, '|'))
+        signals_mapping = decode_signals_v2(signals)
+
+        num = 0
+        output = parse_signals(output)
+        for signal in output
+            num *= 10
+            num += signals_mapping[signal]
+        end
+        s += num
+    end
+    s
+end
+
 part01(read("input/day08_ex.txt", String))
 part01(read("input/day08.txt", String))
 
 part02(read("input/day08_ex.txt", String))
 part02(read("input/day08.txt", String))
+
+part02_v2(read("input/day08_ex.txt", String))
+part02_v2(read("input/day08.txt", String))
