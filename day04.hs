@@ -11,9 +11,9 @@ main = do
   print ans02
 
 part01 input =
-  play (map read . wordsWhen (== ',') $ calledValues) (map parseBoard boards)
+  play calledValues boards
   where
-    ([calledValues] : boards) = parseInput input
+    (calledValues, boards) = parseInput input
     play [] _ = 0
     play _ [] = 0
     play (calledValue : calledValues) boards =
@@ -23,9 +23,9 @@ part01 input =
             boards -> calledValue * (score . head $ boards)
 
 part02 input =
-  play (map read . wordsWhen (== ',') $ calledValues) (map parseBoard boards) 0
+  play calledValues boards 0
   where
-    ([calledValues] : boards) = parseInput input
+    (calledValues, boards) = parseInput input
     play [] _ finalScore = finalScore
     play _ [] finalScore = finalScore
     play (calledValue : calledValues) boards finalScore =
@@ -40,7 +40,11 @@ part02 input =
 
 parseInput = parse [] [] . lines
   where
-    parse datalist datacurr [] = reverse (reverse datacurr : datalist)
+    parse datalist datacurr [] =
+      let ([calledValues] : boards) = reverse (reverse datacurr : datalist)
+       in ( map read . wordsWhen (== ',') $ calledValues,
+            map parseBoard boards
+          )
     parse datalist datacurr (d : ds) =
       case d of
         "" -> parse (reverse datacurr : datalist) [] ds
@@ -56,10 +60,9 @@ data BingoBoard = BingoBoard [[Int]] [[Bool]] deriving (Show, Eq)
 
 score (BingoBoard rows rowsMarkers) = foldl rowScore 0 (zip rows rowsMarkers)
   where
-    getScore score (val, marker) =
-      if marker
-        then score
-        else score + val
+    getScore score (val, marker)
+      | marker = score
+      | otherwise = score + val
     rowScore totalScore (row, rowMarkers) =
       foldl getScore totalScore (zip row rowMarkers)
 
@@ -71,10 +74,9 @@ hasWon (BingoBoard _ rowsMarkers) = check rowsMarkers || check (transpose rowsMa
 getWinningBoards = get []
   where
     get winningBoards [] = winningBoards
-    get winningBoards (board : boards) =
-      if hasWon board
-        then get (board : winningBoards) boards
-        else get winningBoards boards
+    get winningBoards (board : boards)
+      | hasWon board = get (board : winningBoards) boards
+      | otherwise = get winningBoards boards
 
 markBoard value (BingoBoard rows rowsMarkers) =
   BingoBoard rows (mark rows rowsMarkers)
@@ -83,10 +85,9 @@ markBoard value (BingoBoard rows rowsMarkers) =
     mark (row : rows) (rowMarkers : rowsMarkers) =
       markRow row rowMarkers : mark rows rowsMarkers
     markRow [] [] = []
-    markRow (v : vs) (m : ms) =
-      if v == value
-        then True : markRow vs ms
-        else m : markRow vs ms
+    markRow (v : vs) (m : ms)
+      | v == value = True : markRow vs ms
+      | otherwise = m : markRow vs ms
 
 markBoards _ [] = []
 markBoards value (board : boards) = markBoard value board : markBoards value boards
