@@ -14,31 +14,29 @@ part01 input =
   play (map read . wordsWhen (== ',') $ calledValues) (map parseBoard boards)
   where
     ([calledValues] : boards) = parseInput input
-    play [] boards = 0
+    play [] _ = 0
+    play _ [] = 0
     play (calledValue : calledValues) boards =
       let boardsMarked = markBoards calledValue boards
-       in case getWinningBoard boardsMarked of
-            Just board -> calledValue * score board
-            Nothing -> play calledValues boardsMarked
+       in case getWinningBoards boardsMarked of
+            [] -> play calledValues boardsMarked
+            boards -> calledValue * (score . head $ boards)
 
 part02 input =
   play (map read . wordsWhen (== ',') $ calledValues) (map parseBoard boards) 0
   where
     ([calledValues] : boards) = parseInput input
-
-    removeWinningBoards [] = []
-    removeWinningBoards boards =
-      case getWinningBoard boards of
-        Just board -> removeWinningBoards (filter (/= board) boards)
-        Nothing -> boards
-
     play [] _ finalScore = finalScore
     play _ [] finalScore = finalScore
     play (calledValue : calledValues) boards finalScore =
       let boardsMarked = markBoards calledValue boards
-       in case getWinningBoard boardsMarked of
-            Just board -> play calledValues (removeWinningBoards boardsMarked) (calledValue * score board)
-            Nothing -> play calledValues boardsMarked finalScore
+       in case getWinningBoards boardsMarked of
+            [] -> play calledValues boardsMarked finalScore
+            boards ->
+              play
+                calledValues
+                (filter (`notElem` boards) boardsMarked)
+                (calledValue * (score . head $ boards))
 
 parseInput = parse [] [] . lines
   where
@@ -70,11 +68,13 @@ hasWon (BingoBoard _ rowsMarkers) = check rowsMarkers || check (transpose rowsMa
     check [] = False
     check (rowMarkers : rowsMarkers) = and rowMarkers || check rowsMarkers
 
-getWinningBoard [] = Nothing
-getWinningBoard (board : boards) =
-  if hasWon board
-    then Just board
-    else getWinningBoard boards
+getWinningBoards = get []
+  where
+    get winningBoards [] = winningBoards
+    get winningBoards (board : boards) =
+      if hasWon board
+        then get (board : winningBoards) boards
+        else get winningBoards boards
 
 markBoard value (BingoBoard rows rowsMarkers) =
   BingoBoard rows (mark rows rowsMarkers)
