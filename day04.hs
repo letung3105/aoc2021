@@ -1,5 +1,4 @@
 import Data.List
-import qualified Data.Map as Map
 import System.Environment
 import System.IO
 
@@ -7,7 +6,9 @@ main = do
   args <- getArgs
   input <- readFile . head $ args
   let ans01 = part01 input
+      ans02 = part02 input
   print ans01
+  print ans02
 
 part01 input =
   play (map read . wordsWhen (== ',') $ calledValues) (map parseBoard boards)
@@ -19,6 +20,25 @@ part01 input =
        in case getWinningBoard boardsMarked of
             Just board -> calledValue * score board
             Nothing -> play calledValues boardsMarked
+
+part02 input =
+  play (map read . wordsWhen (== ',') $ calledValues) (map parseBoard boards) 0
+  where
+    ([calledValues] : boards) = parseInput input
+
+    removeWinningBoards [] = []
+    removeWinningBoards boards =
+      case getWinningBoard boards of
+        Just board -> removeWinningBoards (filter (/= board) boards)
+        Nothing -> boards
+
+    play [] _ finalScore = finalScore
+    play _ [] finalScore = finalScore
+    play (calledValue : calledValues) boards finalScore =
+      let boardsMarked = markBoards calledValue boards
+       in case getWinningBoard boardsMarked of
+            Just board -> play calledValues (removeWinningBoards boardsMarked) (calledValue * score board)
+            Nothing -> play calledValues boardsMarked finalScore
 
 parseInput = parse [] [] . lines
   where
@@ -34,7 +54,7 @@ wordsWhen p s = case dropWhile p s of
     where
       (w, s'') = break p s'
 
-data BingoBoard = BingoBoard [[Int]] [[Bool]] deriving (Show)
+data BingoBoard = BingoBoard [[Int]] [[Bool]] deriving (Show, Eq)
 
 score (BingoBoard rows rowsMarkers) = foldl rowScore 0 (zip rows rowsMarkers)
   where
