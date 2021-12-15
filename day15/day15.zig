@@ -86,12 +86,14 @@ fn dijkstra(risks: *ArrayList(ArrayList(usize))) !usize {
     defer std.debug.assert(!gpa.deinit());
 
     var path_risks = ArrayList(ArrayList(usize)).init(&gpa.allocator);
+    try path_risks.ensureCapacity(nrows);
     defer {
         for (path_risks.items) |path_risks_row| path_risks_row.deinit();
         path_risks.deinit();
     }
     for (risks.items) |risks_row, i| {
         var path_risks_row = ArrayList(usize).init(&gpa.allocator);
+        try path_risks_row.ensureCapacity(ncols);
         for (risks_row.items) |risk, j|
             try path_risks_row.append(std.math.maxInt(usize));
         try path_risks.append(path_risks_row);
