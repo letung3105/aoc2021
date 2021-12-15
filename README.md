@@ -1,6 +1,7 @@
 # Advent of Code 2021 solutions in different languages 
 
 | Day    | C   | Haskell | Julia | Rust | Zig |
+|:-------|:---:|:-------:|:-----:|:----:|:---:|
 | Day 01 | :X: | :X:     |       | :X:  | :X: |
 | Day 02 | :X: | :X:     |       | :X:  |     |
 | Day 03 |     | :X:     |       | :X:  |     |
