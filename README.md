@@ -1,22 +1,22 @@
 # Advent of Code 2021 solutions in different languages 
 
-| Day    | C   | Haskell | Julia | Rust | Zig |
-|:-------|:---:|:-------:|:-----:|:----:|:---:|
-| Day 01 | :X: | :X:     |       | :X:  | :X: |
-| Day 02 | :X: | :X:     |       | :X:  |     |
-| Day 03 |     | :X:     |       | :X:  |     |
-| Day 04 |     | :X:     |       | :X:  |     |
-| Day 05 |     | :X:     |       | :X:  |     |
-| Day 06 |     |         |       | :X:  |     |
-| Day 07 |     |         |       | :X:  |     |
-| Day 08 |     |         | :X:   |      |     |
-| Day 09 |     |         | :X:   |      |     |
-| Day 10 |     |         | :X:   |      |     |
-| Day 11 | :X: | :X:     |       |      |     |
-| Day 12 | :X: | :X:     |       |      | :X: |
-| Day 13 |     |         |       |      |     |
-| Day 14 |     |         | :X:   |      |     |
-| Day 15 |     |         |       |      | :X: |
+| Day    | C      | Haskell  | Julia  | Rust   | Zig    |
+|:-------|:------:|:--------:|:------:|:------:|:------:|
+| Day 01 | :star: | :star:   |        | :star: | :star: |
+| Day 02 | :star: | :star:   |        | :star: |        |
+| Day 03 |        | :star:   |        | :star: |        |
+| Day 04 |        | :star:   |        | :star: |        |
+| Day 05 |        | :star:   |        | :star: |        |
+| Day 06 |        |          |        | :star: |        |
+| Day 07 |        |          |        | :star: |        |
+| Day 08 |        |          | :star: |        |        |
+| Day 09 |        |          | :star: |        |        |
+| Day 10 |        |          | :star: |        |        |
+| Day 11 | :star: | :star:   |        |        |        |
+| Day 12 | :star: | :star:   |        |        | :star: |
+| Day 13 |        |          |        |        |        |
+| Day 14 |        |          | :star: |        |        |
+| Day 15 |        |          |        |        | :star: |
 
 # Language version
 
