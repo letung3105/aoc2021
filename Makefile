@@ -1,8 +1,9 @@
-all: buildrs buildhs
+all: buildrs buildhs buildc buildzig
 
 buildrs: setup day01rs day02rs day03rs day04rs day05rs day06rs day07rs
 buildhs: setup day01hs day02hs day03hs day04hs day05hs day11hs day12hs
 buildc: setup day01c day02c day11c day12c
+buildzig: setup day12zig
 
 day01rs: day01/day01.rs
 	rustc -o target/$@ $?
@@ -42,6 +43,9 @@ day11c: day11/day11.c
 	cc -o target/$@ $?
 day12c: day12/day12.c
 	cc -o target/$@ $?
+
+day12zig: day12/day12.zig
+	zig build-exe --name $@ $? && mv $@ target/$@
 
 .PHONY: setup
 setup:
