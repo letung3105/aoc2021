@@ -17,6 +17,7 @@
 | Day 13 |        |          |        |        |        |
 | Day 14 |        |          | :star: |        |        |
 | Day 15 |        |          |        |        | :star: |
+| Day 16 |        |          |        |        | :star: |
 
 # Language version
 
