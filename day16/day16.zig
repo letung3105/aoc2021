@@ -20,14 +20,19 @@ pub fn main() !void {
 
     try bin.ensureCapacity(hex.len * 4);
     for (hex) |h| try bin.appendSlice(try toNibble(h));
-    std.debug.print("Bin: {s}\n", .{bin.items});
 
-    const packets = try parse(&gpa.allocator, bin.items);
+    std.debug.print("{s}\n", .{bin.items});
+    std.debug.print("Bits len: {d}\n", .{bin.items.len});
+
+    var packets = ArrayList(Packet).init(&gpa.allocator);
     defer packets.deinit();
+
+    const nbits = try parse(bin.items, &packets);
+    std.debug.print("Bits read: {}\n", .{nbits});
 
     var sum_ver: usize = 0;
     for (packets.items) |packet| sum_ver += packet.ver;
-    std.debug.print("Ver: {}\n", .{sum_ver});
+    std.debug.print("VersionSum: {}\n", .{sum_ver});
 
     const eval = evaluate(&packets);
     std.debug.print("{}\n", .{eval});
@@ -121,25 +126,24 @@ fn printPacket(packet: *const Packet) void {
 
 const ParseError = error{ InvalidParam, OutOfMemory };
 
-const LengthMode = union(enum) {
-    mode0: u64,
-    mode1: u64,
-};
-
 const Packet = struct {
     ver: u64,
     typ: u64,
     val: u64,
 };
 
-fn parse(allocator: *Allocator, bin: []const u8) ParseError!ArrayList(Packet) {
+const SubpacketLen = union(enum) {
+    mode0: u64,
+    mode1: u64,
+};
+
+fn parse(bin: []const u8, packets: *ArrayList(Packet)) ParseError!usize {
     var ptr: usize = 0;
-    var packets = ArrayList(Packet).init(allocator);
-    while (parsePacket(bin[ptr..], &packets)) |nbits| {
+    while (parsePacket(bin[ptr..], packets)) |nbits| {
         if (nbits == 0) break;
         ptr += nbits;
     } else |err| return err;
-    return packets;
+    return ptr;
 }
 
 fn parsePacket(bin: []const u8, packets: *ArrayList(Packet)) ParseError!usize {
@@ -188,17 +192,17 @@ fn parsePacket(bin: []const u8, packets: *ArrayList(Packet)) ParseError!usize {
     return ptr;
 }
 
-fn parseLengthMode(bin: []const u8, ptr: *usize) ParseError!LengthMode {
+fn parseLengthMode(bin: []const u8, ptr: *usize) ParseError!SubpacketLen {
     switch (bin[ptr.*]) {
         '0' => {
             const n = parseBin(bin[ptr.* + 1 .. ptr.* + 16]);
             ptr.* += 16;
-            return LengthMode{ .mode0 = n };
+            return SubpacketLen{ .mode0 = n };
         },
         '1' => {
             const n = parseBin(bin[ptr.* + 1 .. ptr.* + 12]);
             ptr.* += 12;
-            return LengthMode{ .mode1 = n };
+            return SubpacketLen{ .mode1 = n };
         },
         else => return error.InvalidParam,
     }
