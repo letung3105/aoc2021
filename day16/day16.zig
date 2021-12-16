@@ -2,33 +2,35 @@ const std = @import("std");
 
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
+const StdBitReader = std.io.BitReader;
+const FixedBufferStream = std.io.FixedBufferStream;
+const NonSentinelSpan = std.io.NonSentinelSpan;
 const GeneralPurposeAllocator = std.heap.GeneralPurposeAllocator;
 
 const BUFMAX: usize = 2048;
 
-pub fn main() !void {
-    const stdin_stream = std.io.getStdIn().reader();
-    var buf: [BUFMAX]u8 = undefined;
-    const line = try stdin_stream.readUntilDelimiterOrEof(&buf, '\n');
-    const hex = line.?;
+const BitReader = StdBitReader(.Big, FixedBufferStream([]u8).Reader);
 
+pub fn main() !void {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var bin = ArrayList(u8).init(&gpa.allocator);
-    defer bin.deinit();
+    const stdin_stream = std.io.getStdIn().reader();
+    const line = try stdin_stream.readUntilDelimiterOrEofAlloc(&gpa.allocator, '\n', BUFMAX);
+    const hex_buf = line.?;
+    defer gpa.allocator.free(hex_buf);
 
-    try bin.ensureCapacity(hex.len * 4);
-    for (hex) |h| try bin.appendSlice(try toNibble(h));
+    var bits = ArrayList(u8).init(&gpa.allocator);
+    defer bits.deinit();
+    try bits.resize(@divExact(hex_buf.len, 2));
+    _ = try std.fmt.hexToBytes(bits.items, hex_buf);
 
-    std.debug.print("{s}\n", .{bin.items});
-    std.debug.print("Bits len: {d}\n", .{bin.items.len});
+    var bits_fixed_buf = std.io.fixedBufferStream(bits.items);
+    var bit_reader = std.io.bitReader(.Big, bits_fixed_buf.reader());
 
     var packets = ArrayList(Packet).init(&gpa.allocator);
     defer packets.deinit();
-
-    const nbits = try parse(bin.items, &packets);
-    std.debug.print("Bits read: {}\n", .{nbits});
+    try parse(&bit_reader, &packets);
 
     var sum_ver: usize = 0;
     for (packets.items) |packet| sum_ver += packet.ver;
@@ -36,6 +38,116 @@ pub fn main() !void {
 
     const eval = evaluate(&packets);
     std.debug.print("{}\n", .{eval});
+}
+
+const ParseError = BitReader.Error || error{ InvalidPacket, OutOfMemory };
+
+const Packet = struct {
+    ver: u3,
+    typ: u3,
+    val: u64,
+};
+
+const SubpacketLen = union(enum) {
+    mode0: u15,
+    mode1: u11,
+};
+
+fn parse(bit_reader: *BitReader, packets: *ArrayList(Packet)) ParseError!void {
+    var bits_read: usize = undefined;
+    while (parsePacket(bit_reader, packets, &bits_read)) {} else |err| {
+        // return err;
+        switch (err) {
+            error.InvalidPacket => {},
+            else => return err,
+        }
+    }
+}
+
+fn parsePacket(bit_reader: *BitReader, packets: *ArrayList(Packet), bits_read: *usize) ParseError!void {
+    bits_read.* = 0;
+    var nbits: usize = undefined;
+
+    const ver = try bit_reader.readBits(u3, 3, &nbits);
+    if (nbits != 3) return ParseError.InvalidPacket;
+    bits_read.* += nbits;
+
+    const typ = try bit_reader.readBits(u3, 3, &nbits);
+    if (nbits != 3) return ParseError.InvalidPacket;
+    bits_read.* += nbits;
+
+    if (typ == 4) {
+        const lit = try parseLiteral(bit_reader, &nbits);
+        bits_read.* += nbits;
+        try packets.append(Packet{ .ver = ver, .typ = typ, .val = lit });
+    } else {
+        const len = try parseSubpacketLen(bit_reader, &nbits);
+        bits_read.* += nbits;
+        try packets.append(Packet{ .ver = ver, .typ = typ, .val = undefined });
+
+        const packet_idx = packets.items.len - 1;
+        var subpackets: u64 = 0;
+
+        switch (len) {
+            .mode0 => |n| {
+                var m: usize = 0;
+                while (m < n) {
+                    try parsePacket(bit_reader, packets, &nbits);
+                    bits_read.* += nbits;
+                    m += nbits;
+                    subpackets += 1;
+                }
+            },
+            .mode1 => |n| {
+                var i: usize = 0;
+                while (i < n) : (i += 1) {
+                    try parsePacket(bit_reader, packets, &nbits);
+                    bits_read.* += nbits;
+                }
+                subpackets = n;
+            },
+        }
+        // correct number of subpackets
+        packets.items[packet_idx].val = subpackets;
+    }
+}
+
+fn parseLiteral(bit_reader: *BitReader, bits_read: *usize) ParseError!u64 {
+    bits_read.* = 0;
+    var nbits: usize = undefined;
+    var lit: u64 = 0;
+    while (true) {
+        var n: u5 = try bit_reader.readBits(u5, 5, &nbits);
+        if (nbits != 5) return ParseError.InvalidPacket;
+        bits_read.* += nbits;
+
+        lit = (lit << 4) | (n & 0b01111);
+        if (n >> 4 == 0) break;
+    }
+    return lit;
+}
+
+fn parseSubpacketLen(bit_reader: *BitReader, bits_read: *usize) ParseError!SubpacketLen {
+    bits_read.* = 0;
+    var nbits: usize = undefined;
+    const flag = try bit_reader.readBits(u1, 1, &nbits);
+    if (nbits != 1) return ParseError.InvalidPacket;
+    bits_read.* += nbits;
+
+    switch (flag) {
+        0 => {
+            const n = try bit_reader.readBits(u15, 15, &nbits);
+            if (nbits != 15) return ParseError.InvalidPacket;
+            bits_read.* += nbits;
+            return SubpacketLen{ .mode0 = n };
+        },
+        1 => {
+            const n = try bit_reader.readBits(u11, 11, &nbits);
+            if (nbits != 11) return ParseError.InvalidPacket;
+            bits_read.* += nbits;
+            return SubpacketLen{ .mode1 = n };
+        },
+    }
 }
 
 fn evaluate(packets: *const ArrayList(Packet)) !u64 {
@@ -90,7 +202,6 @@ fn evaluate(packets: *const ArrayList(Packet)) !u64 {
                 const v1 = stack.pop();
                 try stack.append(if (v1 == v2) 1 else 0);
             },
-            else => return error.InvalidParam,
         }
         printStack(&stack);
     }
@@ -119,150 +230,6 @@ fn printPacket(packet: *const Packet) void {
         5 => "LT",
         6 => "GT",
         7 => "EQ",
-        else => "N/A",
     };
     std.debug.print("{s} {d}\n", .{ cmd, packet.val });
-}
-
-const ParseError = error{ InvalidParam, OutOfMemory };
-
-const Packet = struct {
-    ver: u64,
-    typ: u64,
-    val: u64,
-};
-
-const SubpacketLen = union(enum) {
-    mode0: u64,
-    mode1: u64,
-};
-
-fn parse(bin: []const u8, packets: *ArrayList(Packet)) ParseError!usize {
-    var ptr: usize = 0;
-    while (parsePacket(bin[ptr..], packets)) |nbits| {
-        if (nbits == 0) break;
-        ptr += nbits;
-    } else |err| return err;
-    return ptr;
-}
-
-fn parsePacket(bin: []const u8, packets: *ArrayList(Packet)) ParseError!usize {
-    // a 4-bit literal is the smallest possible packet which is 11 bits
-    if (bin.len < 11) return 0;
-
-    var ptr: usize = 0;
-    const ver = parseVersion(bin, &ptr);
-    const typ = parseType(bin, &ptr);
-
-    if (typ == 4) {
-        const lit = parseLiteral(bin, &ptr);
-        try packets.append(Packet{ .ver = ver, .typ = typ, .val = lit });
-    } else {
-        const mode = try parseLengthMode(bin, &ptr);
-        // we keep a reference to the operator and update it's
-        // number of subpackets once we finished parsing them,
-        // that's why val is now undefined
-        try packets.append(Packet{ .ver = ver, .typ = typ, .val = undefined });
-        const packet_idx = packets.items.len - 1;
-        var subpackets: u64 = 0;
-        switch (mode) {
-            .mode0 => |n| {
-                var m: usize = 0;
-                while (m < n) {
-                    const nbits = try parsePacket(bin[ptr + m .. ptr + n], packets);
-                    if (nbits == 0) break;
-                    m += nbits;
-                    subpackets += 1;
-                }
-                ptr += m;
-            },
-            .mode1 => |n| {
-                var i: usize = 0;
-                while (i < n) : (i += 1) {
-                    const nbits = try parsePacket(bin[ptr..], packets);
-                    if (nbits == 0) break;
-                    ptr += nbits;
-                }
-                subpackets = n;
-            },
-        }
-        // correct number of subpackets
-        packets.items[packet_idx].val = subpackets;
-    }
-    return ptr;
-}
-
-fn parseLengthMode(bin: []const u8, ptr: *usize) ParseError!SubpacketLen {
-    switch (bin[ptr.*]) {
-        '0' => {
-            const n = parseBin(bin[ptr.* + 1 .. ptr.* + 16]);
-            ptr.* += 16;
-            return SubpacketLen{ .mode0 = n };
-        },
-        '1' => {
-            const n = parseBin(bin[ptr.* + 1 .. ptr.* + 12]);
-            ptr.* += 12;
-            return SubpacketLen{ .mode1 = n };
-        },
-        else => return error.InvalidParam,
-    }
-}
-
-fn parseLiteral(bin: []const u8, ptr: *usize) u64 {
-    var ptr_tmp = ptr.*;
-    while (bin[ptr_tmp] != '0') ptr_tmp += 5;
-    ptr_tmp += 5;
-
-    var literal: u64 = 0;
-    for (bin[ptr.*..ptr_tmp]) |b, i| {
-        if (i % 5 == 0) continue;
-        literal *= 2;
-        literal += b - '0';
-    }
-
-    ptr.* = ptr_tmp;
-    return literal;
-}
-
-fn parseVersion(bin: []const u8, ptr: *usize) u64 {
-    const ver = parseBin(bin[ptr.* .. ptr.* + 3]);
-    ptr.* += 3;
-    return ver;
-}
-
-fn parseType(bin: []const u8, ptr: *usize) u64 {
-    const typ = parseBin(bin[ptr.* .. ptr.* + 3]);
-    ptr.* += 3;
-    return typ;
-}
-
-fn parseBin(bin: []const u8) u64 {
-    var n: u64 = 0;
-    for (bin) |b, i| {
-        n *= 2;
-        n += b - '0';
-    }
-    return n;
-}
-
-fn toNibble(hex: u8) !*const [4]u8 {
-    return switch (hex) {
-        '0' => "0000",
-        '1' => "0001",
-        '2' => "0010",
-        '3' => "0011",
-        '4' => "0100",
-        '5' => "0101",
-        '6' => "0110",
-        '7' => "0111",
-        '8' => "1000",
-        '9' => "1001",
-        'A' => "1010",
-        'B' => "1011",
-        'C' => "1100",
-        'D' => "1101",
-        'E' => "1110",
-        'F' => "1111",
-        else => error.InvalidChar,
-    };
 }
