@@ -115,6 +115,7 @@ fn parsePacket(bit_reader: *BitReader, packets: *ArrayList(Packet), bits_read: *
 fn parseLiteral(bit_reader: *BitReader, bits_read: *usize) ParseError!u64 {
     bits_read.* = 0;
     var nbits: usize = undefined;
+
     var lit: u64 = 0;
     while (true) {
         var n: u5 = try bit_reader.readBits(u5, 5, &nbits);
@@ -130,6 +131,7 @@ fn parseLiteral(bit_reader: *BitReader, bits_read: *usize) ParseError!u64 {
 fn parseSubpacketLen(bit_reader: *BitReader, bits_read: *usize) ParseError!SubpacketLen {
     bits_read.* = 0;
     var nbits: usize = undefined;
+
     const flag = try bit_reader.readBits(u1, 1, &nbits);
     if (nbits != 1) return ParseError.InvalidPacket;
     bits_read.* += nbits;
