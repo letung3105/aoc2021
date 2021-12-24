@@ -18,6 +18,8 @@
 | Day 14 |        |          | :star: |        |        |
 | Day 15 |        |          |        |        | :star: |
 | Day 16 |        |          |        |        | :star: |
+| Day 17 |        |          |        |        | :star: |
+| Day 18 |        |          |        |        | :star: |
 
 # Language version
 
