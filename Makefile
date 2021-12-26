@@ -4,6 +4,7 @@ buildrs: setup day01rs day02rs day03rs day04rs day05rs day06rs day07rs
 buildhs: setup day01hs day02hs day03hs day04hs day05hs day11hs day12hs
 buildc: setup day01c day02c day11c day12c
 buildzig: setup day12zig day15zig day16zig day17zig day18zig
+buildodin: setup day01odin
 
 day01rs: day01/day01.rs
 	rustc -o target/$@ $?
@@ -54,6 +55,9 @@ day17zig: day17/day17.zig
 	zig build-exe --name $@ $? && mv $@ target/$@
 day18zig: day18/day18.zig
 	zig build-exe --name $@ $? && mv $@ target/$@
+
+day01odin: day01/day01.odin
+	odin build $? -out:target/$@
 
 .PHONY: setup
 setup:
