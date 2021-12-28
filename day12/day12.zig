@@ -63,7 +63,7 @@ pub fn main() !void {
             break;
         }
     } else |err| {
-        std.debug.warn("Could not read input", .{});
+        std.debug.warn("Could not read input %s", .{err});
     }
 
     const count1 = part1(&graph);
