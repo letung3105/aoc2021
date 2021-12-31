@@ -8,27 +8,27 @@ pub fn main() !void {
     const maybe_line = try istream.readUntilDelimiterOrEof(&buf, '\n');
     const line = maybe_line.?;
 
-    var line_split = std.mem.split(line, ": ");
+    var line_split = std.mem.split(u8, line, ": ");
     _ = line_split.next().?;
     const target = line_split.next().?;
 
-    var target_split = std.mem.split(target, ", ");
+    var target_split = std.mem.split(u8, target, ", ");
     const xtarget = target_split.next().?;
     const ytarget = target_split.next().?;
 
-    var xtarget_split = std.mem.split(xtarget, "=");
+    var xtarget_split = std.mem.split(u8, xtarget, "=");
     _ = xtarget_split.next().?;
     const xlims = xtarget_split.next().?;
 
-    var ytarget_split = std.mem.split(ytarget, "=");
+    var ytarget_split = std.mem.split(u8, ytarget, "=");
     _ = ytarget_split.next().?;
     const ylims = ytarget_split.next().?;
 
-    var xlims_split = std.mem.split(xlims, "..");
+    var xlims_split = std.mem.split(u8, xlims, "..");
     const xlower = try std.fmt.parseInt(isize, xlims_split.next().?, 10);
     const xupper = try std.fmt.parseInt(isize, xlims_split.next().?, 10);
 
-    var ylims_split = std.mem.split(ylims, "..");
+    var ylims_split = std.mem.split(u8, ylims, "..");
     const ylower = try std.fmt.parseInt(isize, ylims_split.next().?, 10);
     const yupper = try std.fmt.parseInt(isize, ylims_split.next().?, 10);
 

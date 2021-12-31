@@ -12,12 +12,12 @@ pub fn main() !void {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var graph = StringHashMap(BufSet).init(&gpa.allocator);
+    var graph = StringHashMap(BufSet).init(gpa.allocator());
     defer {
         // we are owning both the key and the value
         var graph_it = graph.iterator();
         while (graph_it.next()) |adj_list| {
-            gpa.allocator.free(adj_list.key_ptr.*);
+            gpa.allocator().free(adj_list.key_ptr.*);
             adj_list.value_ptr.deinit();
         }
         graph.deinit();
@@ -27,7 +27,7 @@ pub fn main() !void {
     var stdin_stream = std.io.getStdIn().reader();
     while (stdin_stream.readUntilDelimiterOrEof(&buf, '\n')) |maybe_line| {
         if (maybe_line) |line| {
-            var split = std.mem.split(line, "-");
+            var split = std.mem.split(u8, line, "-");
             const v1 = split.next().?;
             const v2 = split.next().?;
 
@@ -39,10 +39,10 @@ pub fn main() !void {
                 try adj_list.insert(v2);
             } else {
                 // only allocate when the HashMap does not contains our entry
-                var v1_alloc = ArrayList(u8).init(&gpa.allocator);
+                var v1_alloc = ArrayList(u8).init(gpa.allocator());
                 try v1_alloc.appendSlice(v1);
                 const v1_alloc_owned = v1_alloc.toOwnedSlice();
-                var adj_list = BufSet.init(&gpa.allocator);
+                var adj_list = BufSet.init(gpa.allocator());
                 try adj_list.insert(v2);
                 try graph.put(v1_alloc_owned, adj_list);
             }
@@ -52,10 +52,10 @@ pub fn main() !void {
                 try adj_list.insert(v1);
             } else {
                 // only allocate when the HashMap does not contains our entry
-                var v2_alloc = ArrayList(u8).init(&gpa.allocator);
+                var v2_alloc = ArrayList(u8).init(gpa.allocator());
                 try v2_alloc.appendSlice(v2);
                 const v2_alloc_owned = v2_alloc.toOwnedSlice();
-                var adj_list = BufSet.init(&gpa.allocator);
+                var adj_list = BufSet.init(gpa.allocator());
                 try adj_list.insert(v1);
                 try graph.put(v2_alloc_owned, adj_list);
             }
@@ -63,7 +63,7 @@ pub fn main() !void {
             break;
         }
     } else |err| {
-        std.debug.warn("Could not read input %s", .{err});
+        std.debug.print("Could not read input {}", .{err});
     }
 
     const count1 = part1(&graph);
@@ -76,7 +76,7 @@ fn part1(graph: *StringHashMap(BufSet)) !usize {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var visits = StringHashMap(usize).init(&gpa.allocator);
+    var visits = StringHashMap(usize).init(gpa.allocator());
     defer visits.deinit();
 
     var caves_it = graph.keyIterator();
@@ -89,7 +89,7 @@ fn part2(graph: *StringHashMap(BufSet)) !usize {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var visits = StringHashMap(usize).init(&gpa.allocator);
+    var visits = StringHashMap(usize).init(gpa.allocator());
     defer visits.deinit();
 
     var caves_it = graph.keyIterator();

@@ -12,7 +12,7 @@ pub fn main() !void {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var risks = ArrayList(ArrayList(usize)).init(&gpa.allocator);
+    var risks = ArrayList(ArrayList(usize)).init(gpa.allocator());
     defer {
         for (risks.items) |risks_row| risks_row.deinit();
         risks.deinit();
@@ -22,19 +22,19 @@ pub fn main() !void {
     var buf: [MAX_LINE_SZ]u8 = undefined;
     while (stdin_stream.readUntilDelimiterOrEof(&buf, '\n')) |maybe_line| {
         if (maybe_line) |line| {
-            var risks_row = ArrayList(usize).init(&gpa.allocator);
+            var risks_row = ArrayList(usize).init(gpa.allocator());
             for (line) |c| try risks_row.append(c - '0');
             try risks.append(risks_row);
         } else break;
     } else |err| {
-        std.debug.warn("Could not read input", .{});
+        std.debug.print("Could not read input {}", .{err});
         return;
     }
 
     const minRisk1 = try dijkstra(&risks);
     std.debug.print("{}\n", .{minRisk1});
 
-    try extendVert(&gpa.allocator, &risks);
+    try extendVert(gpa.allocator(), &risks);
     try extendHorz(&risks);
     const minRisk2 = try dijkstra(&risks);
     std.debug.print("{}\n", .{minRisk2});
@@ -51,7 +51,7 @@ fn extendHorz(risks: *ArrayList(ArrayList(usize))) !void {
     }
 }
 
-fn extendVert(allocator: *Allocator, risks: *ArrayList(ArrayList(usize))) !void {
+fn extendVert(allocator: Allocator, risks: *ArrayList(ArrayList(usize))) !void {
     const n = risks.items.len * 4;
     var i: usize = 0;
     while (i < n) : (i += 1) {
@@ -68,7 +68,8 @@ const Position = struct {
     risk: usize,
 };
 
-fn positionOrder(x: Position, y: Position) Order {
+fn positionOrder(context: void, x: Position, y: Position) Order {
+    _ = context;
     return std.math.order(x.risk, y.risk);
 }
 
@@ -85,22 +86,22 @@ fn dijkstra(risks: *ArrayList(ArrayList(usize))) !usize {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var path_risks = ArrayList(ArrayList(usize)).init(&gpa.allocator);
-    try path_risks.ensureCapacity(nrows);
+    var path_risks = ArrayList(ArrayList(usize)).init(gpa.allocator());
+    try path_risks.ensureUnusedCapacity(nrows);
     defer {
         for (path_risks.items) |path_risks_row| path_risks_row.deinit();
         path_risks.deinit();
     }
-    for (risks.items) |risks_row, i| {
-        var path_risks_row = ArrayList(usize).init(&gpa.allocator);
-        try path_risks_row.ensureCapacity(ncols);
-        for (risks_row.items) |risk, j|
+    for (risks.items) |risks_row| {
+        var path_risks_row = ArrayList(usize).init(gpa.allocator());
+        try path_risks_row.ensureUnusedCapacity(ncols);
+        for (risks_row.items) |_|
             try path_risks_row.append(std.math.maxInt(usize));
         try path_risks.append(path_risks_row);
     }
 
     var next_to_visit =
-        PriorityQueue(Position).init(&gpa.allocator, positionOrder);
+        PriorityQueue(Position, void, positionOrder).init(gpa.allocator(), {});
     defer next_to_visit.deinit();
 
     path_risks.items[0].items[0] = 0;

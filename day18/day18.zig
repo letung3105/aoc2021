@@ -10,13 +10,13 @@ pub fn main() !void {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var pairs = ArrayList(Pair).init(&gpa.allocator);
+    var pairs = ArrayList(Pair).init(gpa.allocator());
     defer {
         for (pairs.items) |*p| p.deinit();
         pairs.deinit();
     }
 
-    var acc = try Pair.fromStr(&gpa.allocator, "");
+    var acc = try Pair.fromStr(gpa.allocator(), "");
     defer acc.deinit();
 
     var buf: [BUF_SZ]u8 = undefined;
@@ -24,7 +24,7 @@ pub fn main() !void {
     while (istream.readUntilDelimiterOrEof(&buf, '\n')) |maybe_line| {
         if (maybe_line) |line| {
             if (line.len == 0) continue;
-            var p = try Pair.fromStr(&gpa.allocator, line);
+            var p = try Pair.fromStr(gpa.allocator(), line);
             try pairs.append(p);
             try acc.add(&p);
             try acc.reduce();
@@ -42,7 +42,7 @@ pub fn main() !void {
         for (pairs.items) |p2, j| {
             if (i == j) continue;
 
-            var p = try Pair.fromStr(&gpa.allocator, "");
+            var p = try Pair.fromStr(gpa.allocator(), "");
             defer p.deinit();
             try p.add(&p1);
             try p.reduce();
@@ -62,7 +62,7 @@ const Pair = struct {
 
     elems: ArrayList(Elem),
 
-    fn fromStr(allocator: *Allocator, repr: []const u8) !Self {
+    fn fromStr(allocator: Allocator, repr: []const u8) !Self {
         var elems = ArrayList(Elem).init(allocator);
         var lvl: usize = 0;
         for (repr) |c| {
@@ -133,7 +133,7 @@ const Pair = struct {
         var gpa = GeneralPurposeAllocator(.{}){};
         defer std.debug.assert(!gpa.deinit());
 
-        var stack = ArrayList(Elem).init(&gpa.allocator);
+        var stack = ArrayList(Elem).init(gpa.allocator());
         defer stack.deinit();
 
         var i: usize = 0;

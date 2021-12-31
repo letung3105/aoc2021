@@ -16,11 +16,11 @@ pub fn main() !void {
     defer std.debug.assert(!gpa.deinit());
 
     const stdin_stream = std.io.getStdIn().reader();
-    const line = try stdin_stream.readUntilDelimiterOrEofAlloc(&gpa.allocator, '\n', BUFMAX);
+    const line = try stdin_stream.readUntilDelimiterOrEofAlloc(gpa.allocator(), '\n', BUFMAX);
     const hex_buf = line.?;
-    defer gpa.allocator.free(hex_buf);
+    defer gpa.allocator().free(hex_buf);
 
-    var bits = ArrayList(u8).init(&gpa.allocator);
+    var bits = ArrayList(u8).init(gpa.allocator());
     defer bits.deinit();
     try bits.resize(@divExact(hex_buf.len, 2));
     _ = try std.fmt.hexToBytes(bits.items, hex_buf);
@@ -28,7 +28,7 @@ pub fn main() !void {
     var bits_fixed_buf = std.io.fixedBufferStream(bits.items);
     var bit_reader = std.io.bitReader(.Big, bits_fixed_buf.reader());
 
-    var packets = ArrayList(Packet).init(&gpa.allocator);
+    var packets = ArrayList(Packet).init(gpa.allocator());
     defer packets.deinit();
     try parse(&bit_reader, &packets);
 
@@ -156,7 +156,7 @@ fn evaluate(packets: *const ArrayList(Packet)) !u64 {
     var gpa = GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(!gpa.deinit());
 
-    var stack = ArrayList(u64).init(&gpa.allocator);
+    var stack = ArrayList(u64).init(gpa.allocator());
     defer stack.deinit();
 
     var i = packets.items.len;
