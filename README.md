@@ -2,24 +2,25 @@
 
 | Day    | Julia  | Haskell  | Rust   | C      | Zig    | Odin   |
 |:-------|:------:|:--------:|:------:|:------:|:------:|:------:|
-| Day 01 |        | :star:   | :star: | :star: | :star: | :star: |
-| Day 02 |        | :star:   | :star: | :star: |        |        |
-| Day 03 |        | :star:   | :star: |        |        |        |
-| Day 04 |        | :star:   | :star: |        |        |        |
-| Day 05 |        | :star:   | :star: |        |        |        |
-| Day 06 |        |          | :star: |        |        |        |
-| Day 07 |        |          | :star: |        |        |        |
-| Day 08 | :star: |          |        |        |        |        |
-| Day 09 | :star: |          |        |        |        |        |
-| Day 10 | :star: |          |        |        |        |        |
-| Day 11 |        | :star:   |        | :star: |        |        |
+| Day 01 |        | :star:   | :star: | :star: |        | :star: |
+| Day 02 |        | :star:   | :star: | :star: |        | :star: |
+| Day 03 |        | :star:   | :star: |        |        | :star: |
+| Day 04 |        | :star:   | :star: |        |        | :star: |
+| Day 05 |        | :star:   | :star: |        |        | :star: |
+| Day 06 |        |          | :star: |        |        | :star: |
+| Day 07 |        |          | :star: |        |        | :star: |
+| Day 08 | :star: |          |        |        |        | :star: |
+| Day 09 | :star: |          |        |        |        | :star: |
+| Day 10 | :star: |          |        |        |        | :star: |
+| Day 11 |        | :star:   |        | :star: | :star: | :star: |
 | Day 12 |        | :star:   |        | :star: | :star: |        |
-| Day 13 |        |          |        |        |        |        |
-| Day 14 | :star: |          |        |        |        |        |
+| Day 13 |        | :star:   |        |        | :star: |        |
+| Day 14 | :star: |          |        |        | :star: |        |
 | Day 15 |        |          |        |        | :star: |        |
 | Day 16 |        |          |        |        | :star: |        |
 | Day 17 |        |          |        |        | :star: |        |
 | Day 18 |        |          |        |        | :star: |        |
+| Day 19 |        |          |        |        | :star: |        |
 
 # Language version
 
